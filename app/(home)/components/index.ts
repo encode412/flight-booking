@@ -1,0 +1,12 @@
+export { default as HeroSection } from "./HeroSection";
+export { default as ServicesCarouselSection } from "./ServicesCarouselSection";
+export { default as PopularRoutesCarouselSection } from "./PopularCarouselSection";
+export { default as TrendingCarouselSection } from "./TrendingCarouselSection";
+export { default as AboutSection } from "./AboutSection";
+export { default as DestinationCard } from "./DestinationCard";
+export { default as FeatureCard } from "./FeatureCard";
+export { default as FlightLeg } from "./FlightLeg";
+export { default as NavigationButton } from "./NavigationButton";
+export { default as PopularCard } from "./PopularCard";
+export { default as ServiceCard } from "./ServiceCard";
+export { default as WhyEzzifly } from "./WhyEzzifly";
