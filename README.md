@@ -454,7 +454,7 @@ This project is licensed under the MIT License.
 ## 👨‍💻 Developer
 
 **Timothy Onyeacholam**
-- GitHub: [@yourusername](https://github.com/encode412)
+- GitHub: [@encode412](https://github.com/encode412)
 - Email: timothyonyea@example.com
 - LinkedIn: [Your LinkedIn](https://www.linkedin.com/in/timothy-onyeacholam-12365920a/)
 
