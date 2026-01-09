@@ -47,7 +47,7 @@ const PersonalDetailsPage = () => {
             Manage your personal information to make booking easier and faster.
           </p>
         </div>
-        <div className="w-16 h-16 rounded-full bg-blue-400 flex items-center justify-center">
+        <div className="w-16 h-16 hidden rounded-full bg-blue-400 md:flex items-center justify-center">
           <HugeiconsIcon icon={User} className="w-8 h-8 text-white" />
         </div>
       </div>
