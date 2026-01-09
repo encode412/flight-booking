@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { motion } from "framer-motion";
+import { easeOut, motion } from "framer-motion";
 import Image from "next/image";
 
 import { whyEzziflyFeatures } from "@/constants";
@@ -18,7 +18,7 @@ const WhyEzzifly = () => {
       scale: 1,
       transition: {
         duration: 0.5,
-        ease: "easeOut",
+        ease: easeOut
       },
     },
   };

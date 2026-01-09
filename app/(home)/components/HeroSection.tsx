@@ -55,7 +55,7 @@ const HeroSection = () => {
     setFlightLegs([...flightLegs, flightLegs.length + 1]);
   };
 
-  const removeFlightLeg = (index) => {
+  const removeFlightLeg = (index: number) => {
     setFlightLegs(flightLegs.filter((_, i) => i !== index));
   };
 
