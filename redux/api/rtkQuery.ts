@@ -1,15 +1,29 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import toast from "react-hot-toast";
+import type {
+  BaseQueryFn,
+  FetchArgs,
+  FetchBaseQueryError,
+} from "@reduxjs/toolkit/query";
 
 import { logoutUser } from "../features/auth/loginSlice";
+import type { RootState } from "../store";
 
 const PROXY = process.env.NEXT_PUBLIC_BASE_URL;
+
+interface ExtraOptions {
+  skipAuth?: boolean;
+}
 
 const baseQuery = fetchBaseQuery({
   baseUrl: PROXY,
   prepareHeaders: (headers, { getState, extra }) => {
-    if (!extra?.skipAuth) {
-      const accessToken = getState().tokens?.accessToken;
+    const extraOptions = (extra || {}) as ExtraOptions;
+
+    if (!extraOptions?.skipAuth) {
+      const state = getState() as RootState;
+      const accessToken = state.token?.accessToken;
+
       if (accessToken) {
         headers.set("authorization", `Bearer ${accessToken}`);
       }
@@ -18,8 +32,14 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
-const baseQueryWithAuthHandling = async (args, api, extraOptions) => {
-  const { isLoggedIn } = api.getState().login;
+const baseQueryWithAuthHandling: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError,
+  ExtraOptions
+> = async (args, api, extraOptions) => {
+  const state = api.getState() as RootState;
+  const { isLoggedIn } = state.login;
 
   const result = await baseQuery(args, api, extraOptions);
 
@@ -36,6 +56,6 @@ const baseQueryWithAuthHandling = async (args, api, extraOptions) => {
 
 export const api = createApi({
   baseQuery: baseQueryWithAuthHandling,
-  endpoints: (builder) => ({}),
+  endpoints: () => ({}),
   refetchOnMountOrArgChange: 1,
 });
