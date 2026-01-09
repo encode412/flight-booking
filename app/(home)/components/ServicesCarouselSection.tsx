@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 
 import NavigationButton from "./NavigationButton";
@@ -8,10 +8,12 @@ import { services } from "@/constants";
 
 const ServicesCarouselSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const itemsPerView = 3;
+  const [itemsPerView, setItemsPerView] = useState<number>(3);
+  const [cardWidth, setCardWidth] = useState<number>(0);
 
   const headerRef = useRef(null);
-  const carouselRef = useRef(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
   const isCarouselInView = useInView(carouselRef, {
@@ -19,9 +21,42 @@ const ServicesCarouselSection: React.FC = () => {
     margin: "-100px",
   });
 
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+
+      if (width < 640) {
+        setItemsPerView(1);
+      } else if (width < 1024) {
+        setItemsPerView(2);
+      } else {
+        setItemsPerView(3);
+      }
+
+      if (cardRef.current) {
+        const card = cardRef.current;
+        const cardRect = card.getBoundingClientRect();
+        const gap = 24;
+        setCardWidth(cardRect.width + gap);
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+
+    const timer = setTimeout(updateDimensions, 100);
+
+    return () => {
+      window.removeEventListener("resize", updateDimensions);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const maxIndex = Math.max(0, services.length - itemsPerView);
+
   const handleNext = (): void => {
     setCurrentIndex((prev) => {
-      if (prev >= services.length - itemsPerView) {
+      if (prev >= maxIndex) {
         return 0;
       }
       return prev + 1;
@@ -31,7 +66,7 @@ const ServicesCarouselSection: React.FC = () => {
   const handlePrev = (): void => {
     setCurrentIndex((prev) => {
       if (prev <= 0) {
-        return services.length - itemsPerView;
+        return maxIndex;
       }
       return prev - 1;
     });
@@ -81,7 +116,7 @@ const ServicesCarouselSection: React.FC = () => {
           <motion.div
             className="flex gap-6"
             animate={{
-              x: `-${currentIndex * (500 + 24)}px`,
+              x: cardWidth ? `-${currentIndex * cardWidth}px` : 0,
             }}
             transition={{
               type: "spring",
@@ -92,6 +127,7 @@ const ServicesCarouselSection: React.FC = () => {
             {services.map((service, index) => (
               <motion.div
                 key={service.id}
+                ref={index === 0 ? cardRef : null}
                 initial={{ opacity: 0, y: 20 }}
                 animate={
                   isCarouselInView
@@ -103,6 +139,7 @@ const ServicesCarouselSection: React.FC = () => {
                   delay: 0.4 + index * 0.1,
                   ease: "easeOut",
                 }}
+                className="flex-shrink-0 w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
               >
                 <ServiceCard service={service} />
               </motion.div>

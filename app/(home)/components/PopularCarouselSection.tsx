@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 
 import NavigationButton from "./NavigationButton";
@@ -8,16 +8,49 @@ import { popularRoutes } from "@/constants";
 
 const PopularCarouselSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const itemsPerView = 4;
+  const [itemsPerView, setItemsPerView] = useState<number>(3);
+  const [cardWidth, setCardWidth] = useState<number>(0);
 
   const headerRef = useRef(null);
-  const carouselRef = useRef(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
   const isCarouselInView = useInView(carouselRef, {
     once: true,
     margin: "-100px",
   });
+
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+
+      if (width < 640) {
+        setItemsPerView(1);
+      } else if (width < 1024) {
+        setItemsPerView(2);
+      } else {
+        setItemsPerView(3);
+      }
+
+      if (cardRef.current) {
+        const card = cardRef.current;
+        const cardRect = card.getBoundingClientRect();
+        const gap = 24;
+        setCardWidth(cardRect.width + gap);
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+
+    const timer = setTimeout(updateDimensions, 100);
+
+    return () => {
+      window.removeEventListener("resize", updateDimensions);
+      clearTimeout(timer);
+    };
+  }, []);
 
   const handleNext = (): void => {
     setCurrentIndex((prev) => {
@@ -84,7 +117,7 @@ const PopularCarouselSection: React.FC = () => {
           <motion.div
             className="flex gap-5"
             animate={{
-              x: `-${currentIndex * (500 + 32)}px`,
+              x: cardWidth ? `-${currentIndex * cardWidth}px` : 0,
             }}
             transition={{
               type: "spring",
@@ -95,6 +128,7 @@ const PopularCarouselSection: React.FC = () => {
             {popularRoutes.map((route, index) => (
               <motion.div
                 key={route.id}
+                ref={index === 0 ? cardRef : null}
                 initial={{ opacity: 0, y: 20 }}
                 animate={
                   isCarouselInView

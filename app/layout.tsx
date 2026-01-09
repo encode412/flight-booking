@@ -12,7 +12,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Flight Booking App",
+  title: "Ezzifly",
   description:
     "Book flights easily and quickly with our user-friendly flight booking application.",
 };
