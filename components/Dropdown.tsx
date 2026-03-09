@@ -1,19 +1,22 @@
 "use client";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, easeOut, easeIn } from "framer-motion";
 
 import { ArrowDown } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, IconSvgElement } from "@hugeicons/react";
+
+export interface DropdownOption {
+  code: string;
+  name: string;
+  flag?: string;
+  currency?: string;
+}
 
 interface DropdownProps {
-  options: { code: string; name: string; flag?: string; currency?: string }[];
+  options: DropdownOption[];
   selected: string | React.ReactNode;
-  onSelect: (option: {
-    code: string;
-    name: string;
-    flag?: string;
-    currency?: string;
-  }) => void;
+  onSelect: (option: DropdownOption) => void;
+  icon?: IconSvgElement;
 }
 
 const Dropdown = ({ options, selected, onSelect }: DropdownProps) => {
@@ -31,7 +34,7 @@ const Dropdown = ({ options, selected, onSelect }: DropdownProps) => {
       y: 0,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
+        ease: easeOut,
       },
     },
     exit: {
@@ -40,7 +43,7 @@ const Dropdown = ({ options, selected, onSelect }: DropdownProps) => {
       y: -10,
       transition: {
         duration: 0.15,
-        ease: "easeIn",
+        ease: easeIn,
       },
     },
   };

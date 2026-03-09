@@ -5,10 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown, Cancel, Menu } from "@hugeicons/core-free-icons";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, Variants } from "framer-motion";
 
 import Button from "./Button";
-import Dropdown from "./Dropdown";
+import Dropdown, { DropdownOption } from "./Dropdown";
 
 const countries = [
   { code: "NGN", name: "Nigeria", flag: "🇳🇬", currency: "NGN" },
@@ -31,7 +31,7 @@ const languages = [
 const Navbar = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+  const [selectedCountry, setSelectedCountry] = useState<DropdownOption>(countries[0]);
   const [selectedLanguage, setSelectedLanguage] = useState(languages[0]);
 
   const navLinks = [
@@ -47,7 +47,7 @@ const Navbar = () => {
     exit: { opacity: 0 },
   };
 
-  const drawerVariants = {
+  const drawerVariants: Variants = {
     hidden: { x: "100%" },
     visible: {
       x: 0,
@@ -64,10 +64,10 @@ const Navbar = () => {
   }, [mobileMenuOpen]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
-        !containerRef.current.contains(event.target)
+        !containerRef.current.contains(event.target as Node)
       ) {
         setMobileMenuOpen(false);
       }
