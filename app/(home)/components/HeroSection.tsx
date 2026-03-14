@@ -228,7 +228,7 @@ const HeroSection = () => {
 
         <div className="mb-6 md:hidden block">
           <h1 className="text-3xl font-extrabold text-white text-center">
-            Travel Safe with Us and Enjoy Seamless Movement
+            Travel Safe with us and Enjoy Seamless Movement
           </h1>
         </div>
 

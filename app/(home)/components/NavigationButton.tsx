@@ -16,7 +16,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   return (
     <motion.button
       onClick={onClick}
-      className="w-12 h-12 relative z-50 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+      className="w-12 h-12 relative rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
     >
