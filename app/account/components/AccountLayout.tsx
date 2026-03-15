@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Logout01Icon } from "@hugeicons/core-free-icons";
+import { AnimatePresence, motion } from "framer-motion";
 
 import Navbar from "@/components/Navbar";
 import { navigationItems } from "@/constants";
@@ -72,17 +73,18 @@ const AccountLayout: React.FC<AccountLayoutWithNavProps> = ({ children }) => {
 
           <div className="lg:hidden">
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
               className="w-full bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex items-center justify-between"
             >
               <span className="font-semibold text-gray-900">Account Menu</span>
-              <svg
-                className={`w-5 h-5 transition-transform ${
-                  isMobileMenuOpen ? "rotate-180" : ""
-                }`}
+
+              <motion.svg
+                className="w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
               >
                 <path
                   strokeLinecap="round"
@@ -90,52 +92,61 @@ const AccountLayout: React.FC<AccountLayoutWithNavProps> = ({ children }) => {
                   strokeWidth={2}
                   d="M19 9l-7 7-7-7"
                 />
-              </svg>
+              </motion.svg>
             </button>
 
-            {isMobileMenuOpen && (
-              <div className="mt-2 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <nav className="p-2">
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = pathname === item.href;
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="mt-2 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+                >
+                  <nav className="p-2">
+                    {navigationItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = pathname === item.href;
 
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative ${
-                          isActive
-                            ? "bg-red-50 text-red-600"
-                            : "text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {isActive && (
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-r" />
-                        )}
-                        <HugeiconsIcon
-                          icon={Icon}
-                          className="w-5 h-5 shrink-0"
-                        />
-                        <span className="font-medium">{item.label}</span>
-                      </Link>
-                    );
-                  })}
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors relative ${
+                            isActive
+                              ? "bg-red-50 text-red-600"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {isActive && (
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500 rounded-r" />
+                          )}
 
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors mt-2"
-                  >
-                    <HugeiconsIcon
-                      icon={Logout01Icon}
-                      className="w-5 h-5 shrink-0"
-                    />
-                    <span className="font-medium">Sign Out</span>
-                  </button>
-                </nav>
-              </div>
-            )}
+                          <HugeiconsIcon
+                            icon={Icon}
+                            className="w-5 h-5 shrink-0"
+                          />
+                          <span className="font-medium">{item.label}</span>
+                        </Link>
+                      );
+                    })}
+
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors mt-2"
+                    >
+                      <HugeiconsIcon
+                        icon={Logout01Icon}
+                        className="w-5 h-5 shrink-0"
+                      />
+                      <span className="font-medium">Sign Out</span>
+                    </button>
+                  </nav>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <main className="flex-1 min-w-0">
