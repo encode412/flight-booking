@@ -36,6 +36,7 @@ const Navbar = () => {
 
   const navLinks = [
     { label: "Flights", href: "#" },
+    { label: "Book Now", href: "/checkout" },
     { label: "About Us", href: "#" },
     { label: "Blogs", href: "#" },
     { label: "Contact Us", href: "#" },

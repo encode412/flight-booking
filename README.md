@@ -13,6 +13,7 @@ A modern, responsive flight booking platform built with Next.js, TypeScript, and
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Environment Setup](#environment-setup)
+- [Payments (Interswitch Sandbox)](#payments-interswitch-sandbox)
 - [Development](#development)
 - [Build & Deployment](#build--deployment)
 - [Design Implementation](#design-implementation)
@@ -24,6 +25,8 @@ A modern, responsive flight booking platform built with Next.js, TypeScript, and
 ### Implemented Pages
 
 - **Homepage**: Modern landing page with flight search functionality
+- **Checkout**: Standalone booking review page that pays through Interswitch Web Checkout (sandbox)
+- **Payment Result**: Confirms the transaction with a server-side requery before showing success
 - **Sign In**: User authentication with email/password
 - **Register**: New user registration with form validation
 - **Profile Section**: Personal details management with update capabilities
@@ -31,6 +34,7 @@ A modern, responsive flight booking platform built with Next.js, TypeScript, and
 ### Key Functionalities
 
 - ✅ User authentication (register/login)
+- ✅ Interswitch sandbox payments with server-side transaction verification
 - ✅ Protected routes with middleware
 - ✅ Profile management (view/edit personal details)
 - ✅ Form validation with real-time feedback
@@ -148,6 +152,76 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # API Configuration
 NEXT_PUBLIC_API_BASE_URL=your-api-base-url
 ```
+
+See [`.env.example`](./.env.example) for the full list, including the
+Interswitch payment variables.
+
+## 💳 Payments (Interswitch Sandbox)
+
+Flight checkout is paid through **Interswitch Web Checkout (Web Redirect)**
+running against the Interswitch sandbox. Every credential ships with a working
+default, so the flow runs with **no `.env.local` at all**.
+
+### Flow
+
+```
+/checkout
+  └─ passenger + contact form
+       └─ browser POSTs to https://newwebpay-sandbox.interswitchng.com/collections/w/pay
+            └─ Interswitch cashier (card / transfer / USSD / wallet)
+                 └─ redirect back to /payment/response?txnref=...&amount=...&resp=...
+                      └─ POST /api/interswitch/verify   ← authoritative server-side requery
+                           └─ GET sandbox gettransaction.json
+                                ├─ ResponseCode === "00"  → confirmed
+                                └─ Amount matches         → confirmed
+```
+
+### Routes
+
+| Route | Type | Purpose |
+| --- | --- | --- |
+| `/checkout` | Server component | Resolves payment config, renders the passenger form and fare summary |
+| `/payment/response` | Client component | Reads the cashier redirect and triggers verification |
+| `POST /api/interswitch/verify` | Route handler | Server-side requery — the only thing allowed to decide success |
+
+### Configuration
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_INTERSWITCH_MODE` | `TEST` | Only the exact value `LIVE` switches to production |
+| `NEXT_PUBLIC_INTERSWITCH_MERCHANT_CODE` | `MX6072` | Shared sandbox merchant code |
+| `NEXT_PUBLIC_INTERSWITCH_PAY_ITEM_ID` | `9405967` | Shared sandbox pay item ID |
+| `NEXT_PUBLIC_APP_URL` | request host | Absolute origin used to build `site_redirect_url` |
+
+`merchant_code` and `pay_item_id` are **not secrets** — the official Web
+Redirect flow posts them from the browser. The transaction requery is
+unauthenticated, so no client ID/secret is required for this path.
+
+### Test cards
+
+| Brand | Number | Expiry | CVV | PIN | OTP |
+| --- | --- | --- | --- | --- | --- |
+| Verve | `5061050254756707864` | `06/26` | `111` | `1111` | — |
+| Visa | `4000000000002503` | `03/50` | `11` | `1111` | — |
+| Mastercard | `5123450000000008` | `01/39` | `100` | `1111` | `123456` |
+| Insufficient funds | `5060990580000000390` | `03/50` | `111` | `1111` | `123456` |
+
+All test cards use PIN `1111`; where an OTP is required use `123456`.
+
+### Security notes
+
+- The browser redirect carries an untrusted `resp` code. It is **never** used
+  to decide the outcome — `/api/interswitch/verify` requeries Interswitch and
+  requires both `ResponseCode === "00"` and an amount match.
+- `payment_response_type=GET` is set explicitly so the result arrives as query
+  params the confirmation page can read.
+- This app has no persistence, so the verify route accepts the expected amount
+  from the caller. **Before going live**, store the initiated transaction
+  server-side (or consume [Interswitch webhooks](https://docs.interswitchgroup.com/docs/webhooks))
+  so the amount cannot be supplied by the client.
+- Switching to production = set `NEXT_PUBLIC_INTERSWITCH_MODE=LIVE`, point
+  `NEXT_PUBLIC_APP_URL` at your real domain, and replace the sandbox
+  merchant/pay-item codes with your own.
 
 ## 💻 Development
 
