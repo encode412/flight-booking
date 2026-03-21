@@ -43,42 +43,26 @@ import { NavItem } from "@/types/layout";
 export const popularRoutes: PopularRoute[] = [
   {
     id: 1,
-    from: "Lagos",
-    to: "London",
-    price: "₦2,500,00",
-    tripType: "Round Trip",
-    image:
-      Popular1,
+    slug: "lagos-london",
+    image: Popular1,
     alt: "London with Big Ben and red bus",
   },
   {
     id: 2,
-    from: "Abuja",
-    to: "Dubai",
-    price: "₦1,900,00",
-    tripType: "One Way",
-    image:
-      Popular2,
+    slug: "abuja-dubai",
+    image: Popular2,
     alt: "Dubai skyline",
   },
   {
     id: 3,
-    from: "Accra",
-    to: "Paris",
-    price: "₦1,000,00",
-    tripType: "One Way",
-    image:
-      Popular3,
+    slug: "accra-paris",
+    image: Popular3,
     alt: "Eiffel Tower in Paris",
   },
   {
     id: 4,
-    from: "Kogi",
-    to: "Canada",
-    price: "₦1,500,00",
-    tripType: "Round Trip",
-    image:
-      Popular4,
+    slug: "kogi-canada",
+    image: Popular4,
     alt: "Toronto skyline",
   },
 ];
@@ -107,29 +91,25 @@ export const services: Service[] = [
 export const destinations: Destination[] = [
   {
     id: 1,
-    from: "Lagos",
-    to: "London",
+    slug: "lagos-london",
     image: Trending1,
     alt: "Big Ben at sunset in London",
   },
   {
     id: 2,
-    from: "Rome",
-    to: "Germany",
+    slug: "rome-germany",
     image: Trending2,
     alt: "Frankfurt Germany architecture",
   },
   {
     id: 3,
-    from: "Abuja",
-    to: "Dubai",
+    slug: "abuja-dubai",
     image: Trending3,
     alt: "Dubai skyline with modern buildings",
   },
   {
     id: 4,
-    from: "Mumbai",
-    to: "Rome",
+    slug: "mumbai-rome",
     image: Trending4,
     alt: "Dubai Marina skyline",
   },

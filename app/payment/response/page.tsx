@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -78,54 +78,70 @@ const PaymentResult = () => {
   const [state, setState] = useState<ResultState>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
 
-  const runVerification = useCallback(async () => {
-    setState({ status: "loading" });
-
-    try {
-      const response = await fetch("/api/interswitch/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ txnRef, amount: amountMinor }),
-      });
-
-      const data = (await response.json()) as VerifyApiResponse;
-
-      if (!response.ok || "error" in data) {
-        setState({
-          status: "error",
-          message:
-            "error" in data
-              ? data.error
-              : "Unable to confirm the transaction with Interswitch.",
-        });
-        return;
-      }
-
-      setState({
-        status: data.success ? "success" : "failed",
-        result: data,
-      });
-    } catch {
-      setState({
-        status: "error",
-        message: "Something went wrong while confirming your payment.",
-      });
-    }
-  }, [txnRef, amountMinor]);
+  /**
+   * Derived during render (not in an effect) so an incomplete redirect is
+   * reported without a synchronous setState inside useEffect.
+   */
+  const hasValidParams =
+    Boolean(txnRef) && Number.isInteger(amountMinor) && amountMinor > 0;
 
   useEffect(() => {
-    if (!txnRef || !Number.isInteger(amountMinor) || amountMinor <= 0) {
-      setState({ status: "incomplete" });
-      return;
-    }
+    if (!hasValidParams) return;
 
-    void runVerification();
-  }, [txnRef, amountMinor, runVerification, attempt]);
+    let cancelled = false;
+
+    // Every setState below runs after an `await`, so the effect body never
+    // mutates state synchronously.
+    const verify = async () => {
+      try {
+        const response = await fetch("/api/interswitch/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ txnRef, amount: amountMinor }),
+        });
+
+        const data = (await response.json()) as VerifyApiResponse;
+        if (cancelled) return;
+
+        if (!response.ok || "error" in data) {
+          setState({
+            status: "error",
+            message:
+              "error" in data
+                ? data.error
+                : "Unable to confirm the transaction with Interswitch.",
+          });
+          return;
+        }
+
+        setState({
+          status: data.success ? "success" : "failed",
+          result: data,
+        });
+      } catch {
+        if (cancelled) return;
+        setState({
+          status: "error",
+          message: "Something went wrong while confirming your payment.",
+        });
+      }
+    };
+
+    void verify();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasValidParams, txnRef, amountMinor, attempt]);
+
+  // When the redirect is missing its params, show "incomplete" regardless of
+  // what the (never-started) verification state says.
+  const status: Status = hasValidParams ? state.status : "incomplete";
 
   return (
     <main className="bg-gray-50 min-h-screen flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-lg">
-        {state.status === "loading" && (
+        {status === "loading" && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 text-center">
             <div className="mx-auto mb-5 w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             <h1 className="text-lg font-semibold text-gray-900 mb-2">
@@ -139,7 +155,7 @@ const PaymentResult = () => {
           </div>
         )}
 
-        {state.status === "incomplete" && (
+        {status === "incomplete" && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 text-center">
             <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
               <CrossIcon />
@@ -159,7 +175,7 @@ const PaymentResult = () => {
           </div>
         )}
 
-        {state.status === "success" && state.result && (
+        {status === "success" && state.result && (
           <div className="bg-white rounded-2xl border border-green-200 shadow-sm p-10 text-center">
             <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-green-600">
               <CheckIcon />
@@ -216,7 +232,7 @@ const PaymentResult = () => {
           </div>
         )}
 
-        {state.status === "failed" && state.result && (
+        {status === "failed" && state.result && (
           <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-10 text-center">
             <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-accent">
               <CrossIcon />
@@ -259,7 +275,7 @@ const PaymentResult = () => {
           </div>
         )}
 
-        {state.status === "error" && (
+        {status === "error" && (
           <div className="bg-white rounded-2xl border border-amber-200 shadow-sm p-10 text-center">
             <div className="mx-auto mb-5 w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
               <CrossIcon />
@@ -278,7 +294,10 @@ const PaymentResult = () => {
               <Button
                 variant="primary"
                 size="md"
-                onClick={() => setAttempt((n) => n + 1)}
+                onClick={() => {
+                  setState({ status: "loading" });
+                  setAttempt((n) => n + 1);
+                }}
               >
                 Retry verification
               </Button>

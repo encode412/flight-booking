@@ -1,12 +1,15 @@
 import { IconSvgElement } from "@hugeicons/react";
 import { StaticImageData } from "next/image";
 
+/**
+ * Presentation-only entry for the "Popular Routes" carousel.
+ * The route name, trip type and fare are read from the flight catalogue
+ * via `slug`, so the card and the checkout can never disagree.
+ */
 export interface PopularRoute {
   id: number;
-  from: string;
-  to: string;
-  price: string;
-  tripType: string;
+  /** Key into the flight catalogue (`/checkout?route=<slug>`). */
+  slug: string;
   image: StaticImageData;
   alt: string;
 }
@@ -18,10 +21,11 @@ export interface Service {
   alt: string;
 }
 
+/** Presentation-only entry for the "Trending Destinations" carousel. */
 export interface Destination {
   id: number;
-  from: string;
-  to: string;
+  /** Key into the flight catalogue (`/checkout?route=<slug>`). */
+  slug: string;
   image: StaticImageData;
   alt: string;
 }

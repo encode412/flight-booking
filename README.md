@@ -25,7 +25,7 @@ A modern, responsive flight booking platform built with Next.js, TypeScript, and
 ### Implemented Pages
 
 - **Homepage**: Modern landing page with flight search functionality
-- **Checkout**: Standalone booking review page that pays through Interswitch Web Checkout (sandbox)
+- **Checkout**: Booking review page for a selected flight that pays through Interswitch Web Checkout (sandbox)
 - **Payment Result**: Confirms the transaction with a server-side requery before showing success
 - **Sign In**: User authentication with email/password
 - **Register**: New user registration with form validation
@@ -35,6 +35,7 @@ A modern, responsive flight booking platform built with Next.js, TypeScript, and
 
 - ✅ User authentication (register/login)
 - ✅ Interswitch sandbox payments with server-side transaction verification
+- ✅ Click any route card to open checkout for that exact flight and fare
 - ✅ Protected routes with middleware
 - ✅ Profile management (view/edit personal details)
 - ✅ Form validation with real-time feedback
@@ -165,7 +166,7 @@ default, so the flow runs with **no `.env.local` at all**.
 ### Flow
 
 ```
-/checkout
+home page route card → /checkout?route=<slug>
   └─ passenger + contact form
        └─ browser POSTs to https://newwebpay-sandbox.interswitchng.com/collections/w/pay
             └─ Interswitch cashier (card / transfer / USSD / wallet)
@@ -176,11 +177,31 @@ default, so the flow runs with **no `.env.local` at all**.
                                 └─ Amount matches         → confirmed
 ```
 
+### Selecting a flight
+
+The Popular Routes and Trending Destinations cards link to
+`/checkout?route=<slug>`. `constants/flights.ts` is the single source of
+truth for fares: the card renders `totalMinor` and checkout charges
+`totalMinor`, so the advertised price and the charged amount cannot drift.
+
+| Slug | Route | Fare |
+| --- | --- | --- |
+| `lagos-london` | Lagos → London | ₦2,500,000.00 |
+| `abuja-dubai` | Abuja → Dubai | ₦1,900,000.00 |
+| `accra-paris` | Accra → Paris | ₦1,000,000.00 |
+| `kogi-canada` | Kogi → Canada | ₦1,500,000.00 |
+| `rome-germany` | Rome → Germany | ₦1,250,000.00 |
+| `mumbai-rome` | Mumbai → Rome | ₦1,750,000.00 |
+
+Visiting `/checkout` with no `?route=` falls back to the demo itinerary in
+`constants/sampleBooking.ts` (Lagos → Dubai, ₦1,236,500.00). An unknown slug
+returns **404** rather than silently charging for a different flight.
+
 ### Routes
 
 | Route | Type | Purpose |
 | --- | --- | --- |
-| `/checkout` | Server component | Resolves payment config, renders the passenger form and fare summary |
+| `/checkout?route=<slug>` | Server component | Resolves the selected flight + payment config, then renders the passenger form and fare summary. No `?route=` = demo itinerary, unknown slug = 404 |
 | `/payment/response` | Client component | Reads the cashier redirect and triggers verification |
 | `POST /api/interswitch/verify` | Route handler | Server-side requery — the only thing allowed to decide success |
 
@@ -201,12 +222,16 @@ unauthenticated, so no client ID/secret is required for this path.
 
 | Brand | Number | Expiry | CVV | PIN | OTP |
 | --- | --- | --- | --- | --- | --- |
-| Verve | `5061050254756707864` | `06/26` | `111` | `1111` | — |
+| Verve | `5060990580000217499` | `03/50` | `111` | `1111` | `123456` |
 | Visa | `4000000000002503` | `03/50` | `11` | `1111` | — |
 | Mastercard | `5123450000000008` | `01/39` | `100` | `1111` | `123456` |
 | Insufficient funds | `5060990580000000390` | `03/50` | `111` | `1111` | `123456` |
 
 All test cards use PIN `1111`; where an OTP is required use `123456`.
+
+> ⚠️ The Verve card `5061050254756707864` (expiry `06/26`) listed in the
+> Interswitch docs is **expired** as of Nov 2026 — the cashier rejects it with
+> "Card is expired". Use `5060990580000217499` instead.
 
 ### Security notes
 
